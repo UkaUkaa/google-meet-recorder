@@ -1,0 +1,20 @@
+# Dependency directories
+node_modules/
+dist/
+build/
+
+# VSCode
+.vscode/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# IDEs
+.idea/
+
+# Chrome extension generated files
+*.crx
