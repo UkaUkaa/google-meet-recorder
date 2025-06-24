@@ -1,9 +1,9 @@
 let recordingStartTime = null;
 let timerInterval = null;
 
-// Listen to messages from content.js
+// Handle messages from content script
 chrome.runtime.onMessage.addListener((message) => {
-  console.log("📩 Message received:", message.type);
+  console.log("📩 [Recorder] Message received:", message.type);
 
   if (message.type === "START_RECORDING") {
     recordingStartTime = Date.now();
@@ -17,24 +17,48 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 });
 
-// Set extension icon depending on recording state
+// When extension icon is clicked, inject all scripts manually
+chrome.action.onClicked.addListener(async (tab) => {
+  console.log("[Recorder] Extension icon clicked, injecting modules...");
+
+  const files = [
+    "content/recorder.js",
+    "content/overlay.js",
+    "content/modal.js",
+    "content/content.js"
+  ];
+
+  for (const file of files) {
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: [file]
+      });
+      console.log(`[Recorder] ✅ Injected: ${file}`);
+    } catch (err) {
+      console.error(`[Recorder] ❌ Failed to inject ${file}:`, err);
+    }
+  }
+});
+
+// Set dynamic icon depending on recording status
 function setRecordingIcon(isRecording) {
   const iconPath = isRecording
-    ? "icons/icons-record.png"
-    : "icons/icons-no-record.png";
+    ? "icons/icon-record.png"
+    : "icons/icon-no-record.png";
 
   chrome.action.setIcon({ path: { "128": iconPath } }, () => {
     if (chrome.runtime.lastError) {
-      console.error("❌ Failed to set icon:", chrome.runtime.lastError.message);
+      console.error("[Recorder] ❌ Failed to set icon:", chrome.runtime.lastError.message);
     } else {
-      console.log("✅ Icon set to:", iconPath);
+      console.log("[Recorder] 🔄 Icon set to:", iconPath);
     }
   });
 }
 
 // Start badge timer
 function startTimerBadge() {
-  updateBadge(); // immediately show 00:00
+  updateBadge();
   timerInterval = setInterval(updateBadge, 1000);
 }
 
@@ -48,8 +72,9 @@ function updateBadge() {
   chrome.action.setBadgeBackgroundColor({ color: "#FF0000" });
 }
 
-// Stop timer and clear badge
+// Stop badge and clear interval
 function stopTimerBadge() {
   clearInterval(timerInterval);
+  timerInterval = null;
   chrome.action.setBadgeText({ text: "" });
 }

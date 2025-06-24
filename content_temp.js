@@ -36,7 +36,6 @@ function createOverlay() {
   stopButton.style.fontSize = "14px";
   stopButton.style.borderRadius = "4px";
   stopButton.style.cursor = "pointer";
-
   stopButton.onclick = stopRecording;
 
   overlay.appendChild(timeSpan);
@@ -68,7 +67,7 @@ function stopOverlayTimer() {
   timerInterval = null;
 }
 
-// Stop recording and save file
+// Stop recording and show preview modal
 function stopRecording() {
   if (!mediaRecorder || !isStarted) return;
 
@@ -76,7 +75,6 @@ function stopRecording() {
   chrome.runtime.sendMessage({ type: "STOP_RECORDING" });
   isStarted = false;
 
-  // Restore buttons
   const toggle = document.getElementById("toggleButton");
   const settings = document.getElementById("settingsButton");
   if (toggle) {
@@ -89,6 +87,69 @@ function stopRecording() {
 
   stopOverlayTimer();
   removeOverlay();
+}
+
+// When recording stops, show preview with Save/Discard options
+function handleRecordingStopped() {
+  const blob = new Blob(recordedChunks, { type: "video/webm" });
+  const url = URL.createObjectURL(blob);
+
+  const modal = document.createElement("div");
+  modal.style.position = "fixed";
+  modal.style.top = "0";
+  modal.style.left = "0";
+  modal.style.width = "100vw";
+  modal.style.height = "100vh";
+  modal.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
+  modal.style.zIndex = "999999999";
+  modal.style.display = "flex";
+  modal.style.flexDirection = "column";
+  modal.style.justifyContent = "center";
+  modal.style.alignItems = "center";
+  modal.style.gap = "20px";
+
+  const video = document.createElement("video");
+  video.src = url;
+  video.controls = true;
+  video.autoplay = true;
+  video.style.maxWidth = "90vw";
+  video.style.maxHeight = "70vh";
+  video.style.border = "4px solid white";
+  video.style.borderRadius = "12px";
+  modal.appendChild(video);
+
+  const btnSave = document.createElement("button");
+  btnSave.textContent = "💾 Save";
+  btnSave.style.padding = "10px 20px";
+  btnSave.style.fontSize = "18px";
+  btnSave.style.cursor = "pointer";
+  btnSave.onclick = () => {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `recording-${Date.now()}.webm`;
+    a.click();
+    document.body.removeChild(modal);
+    URL.revokeObjectURL(url);
+  };
+
+  const btnDiscard = document.createElement("button");
+  btnDiscard.textContent = "🗑️ Discard";
+  btnDiscard.style.padding = "10px 20px";
+  btnDiscard.style.fontSize = "18px";
+  btnDiscard.style.cursor = "pointer";
+  btnDiscard.onclick = () => {
+    document.body.removeChild(modal);
+    URL.revokeObjectURL(url);
+  };
+
+  const buttons = document.createElement("div");
+  buttons.style.display = "flex";
+  buttons.style.gap = "20px";
+  buttons.appendChild(btnSave);
+  buttons.appendChild(btnDiscard);
+  modal.appendChild(buttons);
+
+  document.body.appendChild(modal);
 }
 
 // Insert UI controls into Google Meet
@@ -124,14 +185,13 @@ window.addEventListener("load", () => {
     try {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
-        audio: true // вкладка, если включена
+        audio: true
       });
 
       const micStream = await navigator.mediaDevices.getUserMedia({
         audio: true
       });
 
-      // Объединяем микрофон + экран
       const combinedStream = new MediaStream([
         ...screenStream.getVideoTracks(),
         ...micStream.getAudioTracks()
@@ -142,26 +202,13 @@ window.addEventListener("load", () => {
         mimeType: "video/webm; codecs=vp9"
       });
 
-
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           recordedChunks.push(event.data);
         }
       };
 
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: "video/webm" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `meet-recording-${Date.now()}.webm`;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          URL.revokeObjectURL(url);
-          a.remove();
-        }, 100);
-      };
+      mediaRecorder.onstop = handleRecordingStopped;
 
       mediaRecorder.start();
       isStarted = true;
@@ -171,10 +218,8 @@ window.addEventListener("load", () => {
       createOverlay();
       startOverlayTimer();
 
-      // Hide control buttons
       toggleButton.style.display = "none";
       settingsButton.style.display = "none";
-
     } catch (err) {
       console.error("Screen record error:", err);
       alert("Could not start screen recording.");
@@ -190,7 +235,7 @@ window.addEventListener("load", () => {
   document.body.appendChild(container);
 });
 
-// Button styling
+// Button styling helper
 function styleButton(btn, bgColor) {
   btn.style.padding = "10px";
   btn.style.fontSize = "14px";

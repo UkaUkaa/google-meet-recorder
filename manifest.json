@@ -1,27 +1,25 @@
 {
   "manifest_version": 3,
   "name": "Google Meet Recorder",
-  "version": "1.0",
-  "description": "Record Google Meet with timer overlay in browser badge.",
-  "permissions": ["tabs", "scripting"],
-  "host_permissions": ["https://meet.google.com/*"],
-  "background": {
-    "service_worker": "background.js"
-  },
-  "content_scripts": [
-    {
-      "matches": ["https://meet.google.com/*"],
-      "js": ["content.js"],
-      "run_at": "document_idle"
-    }
+  "version": "1.0.1",
+  "description": "Record Google Meet with overlay and preview modal.",
+  "permissions": [
+    "scripting",
+    "tabs"
   ],
-    "action": {
+  "host_permissions": [
+    "https://meet.google.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
     "default_icon": {
-        "128": "icons/icon-no-record.png"
+      "128": "icons/icon-no-record.png"
     }
-    },
-    "icons": {
-        "128": "icons/icon-no-record.png"
-    }
-
+  },
+  "icons": {
+    "128": "icons/icon-no-record.png"
+  }
 }
