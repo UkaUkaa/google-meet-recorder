@@ -122,15 +122,26 @@ window.addEventListener("load", () => {
     }
 
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
+        audio: true // вкладка, если включена
+      });
+
+      const micStream = await navigator.mediaDevices.getUserMedia({
         audio: true
       });
 
+      // Объединяем микрофон + экран
+      const combinedStream = new MediaStream([
+        ...screenStream.getVideoTracks(),
+        ...micStream.getAudioTracks()
+      ]);
+
       recordedChunks = [];
-      mediaRecorder = new MediaRecorder(stream, {
+      mediaRecorder = new MediaRecorder(combinedStream, {
         mimeType: "video/webm; codecs=vp9"
       });
+
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
