@@ -19,7 +19,7 @@ By submitting a pull request, you agree to the following:
 - You are the original author of the code you are contributing, or you have the legal right to contribute it.
 - Your contribution becomes part of the project and may be modified, redistributed, or relicensed by the project owner.
 - All contributions are integrated into the project under its custom license.
-- The project and all its code remain the exclusive intellectual property of the original author ("Your Name").
+- The project and all its code remain the exclusive intellectual property of the original author ("Sasha Filinskyi").
 
 If you do not agree with these terms, please do not submit a pull request.
 

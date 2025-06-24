@@ -22,8 +22,8 @@ google-meet-recorder/
 ├── background.js               # Handles badge timer and icon switching
 ├── content.js                  # Injects UI and handles recording logic
 └── icons/
-    ├── icons-no-record.png     # Default icon (idle)
-    └── icons-record.png        # Icon during active recording
+    ├── icon-no-record.png     # Default icon (idle)
+    └── icon-record.png        # Icon during active recording
 ```
 
 ---
@@ -64,8 +64,8 @@ google-meet-recorder/
 
 ## 🖼️ Icons
 
-- `icons/icons-no-record.png` — shown when idle
-- `icons/icons-record.png` — shown during recording
+- `icons/icon-no-record.png` — shown when idle
+- `icons/icon-record.png` — shown during recording
 - Recommended size: 128×128 pixels
 
 ---
